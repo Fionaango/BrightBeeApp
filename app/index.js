@@ -5,7 +5,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { StudyContext } from '../StudyContext';
 
 export default function HomeScreen() {
-  const { username } = useContext(StudyContext);
+  const { username, studyData } = useContext(StudyContext);
+
+  // Calculate today's study time and weekly study time
+  const today = new Date().toLocaleString('en-us', { weekday: 'long' });
+  const todayStudyTime = studyData[today];
+  const weeklyStudyTime = Object.values(studyData).reduce((acc, curr) => acc + curr, 0);
 
   return (
     <LinearGradient colors={['#FFF1CC', '#FFFFFF']} style={styles.gradientBackground}>
@@ -24,11 +29,11 @@ export default function HomeScreen() {
         </TouchableOpacity>
         <View style={styles.statsContainer}>
           <View style={[styles.statBubble, { backgroundColor: '#FFC700' }]}>
-            <Text style={styles.statNumber}>4 hrs</Text>
+            <Text style={styles.statNumber}>{todayStudyTime} hrs</Text>
             <Text style={styles.statLabel}>Today's Study Time</Text>
           </View>
           <View style={[styles.statBubble, { backgroundColor: '#FFC700' }]}>
-            <Text style={styles.statNumber}>17 hrs</Text>
+            <Text style={styles.statNumber}>{weeklyStudyTime} hrs</Text>
             <Text style={styles.statLabel}>Weekly Study Time</Text>
           </View>
           <View style={[styles.statBubble, { backgroundColor: '#FFC700' }]}>
