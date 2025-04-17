@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { StudyContext } from '../StudyContext';
 
 export default function DashboardScreen() {
-  const { studyData } = useContext(StudyContext);
+  const { studyData } = useContext(StudyContext); 
   const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
