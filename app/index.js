@@ -7,7 +7,6 @@ import { StudyContext } from '../StudyContext';
 export default function HomeScreen() {
   const { username, studyData } = useContext(StudyContext);
 
-  // Calculate today's study time and weekly study time
   const today = new Date().toLocaleString('en-us', { weekday: 'long' });
   const todayStudyTime = studyData[today];
   const weeklyStudyTime = Object.values(studyData).reduce((acc, curr) => acc + curr, 0);
