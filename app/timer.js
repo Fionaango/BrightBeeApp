@@ -1,187 +1,287 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, TextInput, Keyboard } from 'react-native';
+import React, { useContext, useState, useEffect } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StudyContext } from '../StudyContext';
 
 export default function TimerScreen() {
-  const presetDurations = {
-    '15 mins': 15 * 60,
-    '30 mins': 30 * 60,
-    '1 hour': 60 * 60,
-    '2 hours': 120 * 60,
+  const { subject, setSubject, addStudyTime } = useContext(StudyContext);
+
+  const [subjects, setSubjects] = useState(['Math', 'English', 'Science', 'History']);
+  const [times, setTimes] = useState(['15', '30', '60']); // minutes
+
+  const [studyTime, setStudyTime] = useState('25');
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [isCounting, setIsCounting] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const handleAddSubject = () => {
+    Alert.prompt('Add Subject', 'Enter subject name:', (text) => {
+      if (text && !subjects.includes(text)) {
+        setSubjects([...subjects, text]);
+      }
+    });
   };
 
-  const [initialTime, setInitialTime] = useState(presetDurations['15 mins']);
-  const [timeLeft, setTimeLeft] = useState(initialTime);
-  const [running, setRunning] = useState(false);
-  const [sessionStarted, setSessionStarted] = useState(false);
-  const [customInput, setCustomInput] = useState('');
-  const { addStudyTime } = useContext(StudyContext);
+  const handleDeleteSubject = (item) => {
+    if (item === subject) {
+      Alert.alert('Cannot delete selected subject!');
+      return;
+    }
+    Alert.alert('Delete Subject', `Remove "${item}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => setSubjects(subjects.filter((s) => s !== item)),
+      },
+    ]);
+  };
+
+  const handleAddTime = () => {
+    Alert.prompt('Add Time', 'Enter time in minutes:', (text) => {
+      const timeNum = parseInt(text);
+      if (!isNaN(timeNum) && timeNum > 0 && !times.includes(text)) {
+        setTimes([...times, text]);
+      }
+    });
+  };
+
+  const handleDeleteTime = (item) => {
+    if (item === studyTime) {
+      Alert.alert('Cannot delete selected time!');
+      return;
+    }
+    Alert.alert('Delete Time', `Remove "${item} minutes"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => setTimes(times.filter((t) => t !== item)),
+      },
+    ]);
+  };
+
+  const startStudySession = () => {
+    if (!subject || !studyTime) {
+      Alert.alert('Please select both subject and time!');
+      return;
+    }
+
+    const timeInSeconds = Number(studyTime) * 60;
+    addStudyTime(Number(studyTime));
+    setTimeLeft(timeInSeconds);
+    setIsCounting(true);
+    setIsPaused(false);
+  };
+
+  const stopStudySession = () => {
+    setIsCounting(false);
+    setIsPaused(false);
+    setTimeLeft(0);
+  };
+
+  const pauseResumeSession = () => {
+    setIsPaused(!isPaused);
+  };
 
   useEffect(() => {
-    if (!sessionStarted) {
-      setTimeLeft(initialTime);
+    let timer = null;
+    if (isCounting && !isPaused && timeLeft > 0) {
+      timer = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000);
+    } else if (isCounting && timeLeft === 0) {
+      setIsCounting(false);
+      Alert.alert('🎉 Session Complete!', `Great job on studying ${subject}!`);
     }
-  }, [initialTime, sessionStarted]);
+    return () => clearTimeout(timer);
+  }, [isCounting, isPaused, timeLeft]);
 
-  useEffect(() => {
-    let timer;
-    if (running && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && running) {
-      setRunning(false);
-    }
-    return () => clearInterval(timer);
-  }, [running, timeLeft]);
-
-  const formatTime = seconds => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  };
-
-  const handlePresetPress = duration => {
-    if (!sessionStarted) {
-      setInitialTime(duration);
-      setTimeLeft(duration);
-    }
-  };
-
-  const handleCustomSet = () => {
-    const minutes = parseInt(customInput, 10);
-    if (!isNaN(minutes) && minutes > 0 && !sessionStarted) {
-      const newDuration = minutes * 60;
-      setInitialTime(newDuration);
-      setTimeLeft(newDuration);
-      setCustomInput('');
-      Keyboard.dismiss();
-    }
-  };
-
-  const handleFinishSession = () => {
-    const elapsedSeconds = initialTime - timeLeft;
-    const elapsedMinutes = Math.round(elapsedSeconds / 60);
-    if (elapsedMinutes > 0) {
-      addStudyTime(elapsedMinutes);
-    }
-    setRunning(false);
-    setTimeLeft(initialTime);
-    setSessionStarted(false);
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
   };
 
   return (
     <LinearGradient colors={['#FFF1CC', '#FFFFFF']} style={styles.gradientBackground}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Study Timer</Text>
-        <View style={styles.timerCircle}>
-          <Text style={styles.timerText}>
-            {timeLeft > 0 ? formatTime(timeLeft) : '00:00'}
-          </Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Choose a Subject and Time</Text>
+
+        {/* SUBJECTS */}
+        <View style={styles.rowHeader}>
+          <Text style={styles.label}>Subject:</Text>
+          <TouchableOpacity onPress={handleAddSubject}>
+            <Text style={styles.inlineText}>➕</Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.presetsContainer}>
-          {Object.entries(presetDurations).map(([label, duration]) => (
+        <View style={styles.buttonGroup}>
+          {subjects.map((item) => (
             <TouchableOpacity
-              key={label}
-              style={[
-                styles.presetButton,
-                (initialTime === duration && !sessionStarted) && styles.presetButtonActive,
-              ]}
-              onPress={() => handlePresetPress(duration)}
-              disabled={sessionStarted}
+              key={item}
+              style={[styles.optionButton, subject === item && styles.selectedButton]}
+              onPress={() => setSubject(item)}
+              onLongPress={() => handleDeleteSubject(item)}
             >
-              <Text style={styles.presetButtonText}>{label}</Text>
+              <Text style={styles.optionText}>{item}</Text>
             </TouchableOpacity>
           ))}
         </View>
-        {!sessionStarted && (
-          <View style={styles.customContainer}>
-            <TextInput
-              style={styles.customInput}
-              placeholder="Custom (mins)"
-              placeholderTextColor="#888"
-              keyboardType="numeric"
-              value={customInput}
-              onChangeText={setCustomInput}
-            />
-            <TouchableOpacity style={styles.customButton} onPress={handleCustomSet}>
-              <Text style={styles.customButtonText}>Set</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        <View style={styles.buttonRow}>
-          {running ? (
-            <TouchableOpacity
-              style={[styles.timerButton, styles.pauseButton]}
-              onPress={() => setRunning(false)}
-            >
-              <Text style={styles.buttonLabel}>Pause</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={[styles.timerButton, styles.startButton]}
-              onPress={() => {
-                setRunning(true);
-                setSessionStarted(true);
-              }}
-            >
-              <Text style={styles.buttonLabel}>Start</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            style={[styles.timerButton, styles.resetButton]}
-            onPress={() => {
-              setRunning(false);
-              setTimeLeft(initialTime);
-              setSessionStarted(false);
-            }}
-          >
-            <Text style={styles.buttonLabel}>Reset</Text>
+
+        {/* STUDY TIMES */}
+        <View style={styles.rowHeader}>
+          <Text style={styles.label}>Study Time:</Text>
+          <TouchableOpacity onPress={handleAddTime}>
+            <Text style={styles.inlineText}>➕</Text>
           </TouchableOpacity>
         </View>
-        {sessionStarted && !running && (
-          <TouchableOpacity style={styles.finishButton} onPress={handleFinishSession}>
-            <Text style={styles.finishButtonText}>Finish Session</Text>
+        <View style={styles.buttonGroup}>
+          {times.map((item) => (
+            <TouchableOpacity
+              key={item}
+              style={[styles.optionButton, studyTime === item && styles.selectedButton]}
+              onPress={() => setStudyTime(item)}
+              onLongPress={() => handleDeleteTime(item)}
+            >
+              <Text style={styles.optionText}>
+                {item === '60' ? '1 hour' : `${item} minutes`}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* TIMER */}
+        {!isCounting ? (
+          <TouchableOpacity style={styles.startButton} onPress={startStudySession}>
+            <Text style={styles.startButtonText}>Start Study Session</Text>
           </TouchableOpacity>
+        ) : (
+          <View style={styles.timerBox}>
+            <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
+            <Text style={styles.timerSubtext}>Stay focused! 🐝</Text>
+            <View style={styles.timerControls}>
+              <TouchableOpacity onPress={pauseResumeSession} style={styles.controlButton}>
+                <Text style={styles.controlButtonText}>
+                  {isPaused ? 'Resume' : 'Pause'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={stopStudySession}
+                style={[styles.controlButton, { backgroundColor: '#EF5350' }]}
+              >
+                <Text style={styles.controlButtonText}>Stop</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
-      </View>
+      </ScrollView>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  gradientBackground: { flex: 1 },
-  container: { flex: 1, padding: 30, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#1A1A1A', marginBottom: 20 },
-  timerCircle: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    elevation: 3,
-    marginBottom: 30,
+  gradientBackground: {
+    flex: 1,
   },
-  timerText: { fontSize: 40, color: '#1A1A1A', fontWeight: 'bold' },
-  presetsContainer: { flexDirection: 'row', flexWrap: 'wrap', width: '80%', justifyContent: 'space-between', marginBottom: 20 },
-  presetButton: { width: '48%', marginVertical: 6, paddingVertical: 20, borderRadius: 25, backgroundColor: '#FFC700', alignItems: 'center', justifyContent: 'center' },
-  presetButtonActive: { borderWidth: 2, borderColor: '#000' },
-  presetButtonText: { color: '#1A1A1A', fontSize: 16, fontWeight: 'bold' },
-  customContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  customInput: { height: 40, width: 100, borderColor: '#CCC', borderWidth: 1, borderRadius: 10, paddingHorizontal: 8, marginRight: 10, color: '#1A1A1A' },
-  customButton: { backgroundColor: '#FFC700', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 20 },
-  customButtonText: { color: '#1A1A1A', fontWeight: 'bold', fontSize: 16 },
-  buttonRow: { flexDirection: 'row', marginBottom: 20 },
-  timerButton: { borderRadius: 30, paddingVertical: 10, paddingHorizontal: 20, marginHorizontal: 5 },
-  startButton: { backgroundColor: '#00C851' },
-  pauseButton: { backgroundColor: '#FF9800' },
-  resetButton: { backgroundColor: '#F44336' },
-  buttonLabel: { fontSize: 16, color: '#FFFFFF', fontWeight: 'bold' },
-  finishButton: { backgroundColor: '#000', paddingVertical: 15, paddingHorizontal: 50, borderRadius: 25, marginTop: 20 },
-  finishButtonText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
+  container: {
+    flexGrow: 1,
+    padding: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 24,
+    color: '#1A1A1A',
+    textAlign: 'center',
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 10,
+    color: '#1A1A1A',
+  },
+  rowHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    alignItems: 'center',
+  },
+  inlineText: {
+    fontSize: 20,
+    paddingHorizontal: 6,
+  },
+  buttonGroup: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 24,
+  },
+  optionButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: '#FFF8E1',
+    borderWidth: 1,
+    borderColor: '#FFD54F',
+  },
+  selectedButton: {
+    backgroundColor: '#FFD54F',
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  startButton: {
+    marginTop: 20,
+    backgroundColor: '#FFC107',
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 12,
+  },
+  startButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  timerBox: {
+    alignItems: 'center',
+    marginTop: 30,
+    backgroundColor: '#fffbe6',
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#FFD54F',
+  },
+  timerText: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  timerSubtext: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+  },
+  timerControls: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 20,
+  },
+  controlButton: {
+    backgroundColor: '#FFA000',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  controlButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
