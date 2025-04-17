@@ -1,6 +1,6 @@
 # BrightBee
 
-![BrightBee Logo](assets/bee.png)
+![BrightBee Logo](../assets/bee.png)
 
 **BrightBee** is an engaging, gamified study‐timer app for iOS, built with React Native and Expo Router. It helps students track Pomodoro‐style study sessions, visualize weekly progress, and personalize their experience with themes, presets, and custom durations.
 
