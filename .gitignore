@@ -30,3 +30,13 @@ ios/build/
 # Other
 *.log
 *.tmp
+# Ignore user/system config
+.viminfo
+.zsh_history
+
+# Ignore CocoaPods stuff
+*.lock
+*.txt
+*.etag
+*.yml
+.cocoapods/
