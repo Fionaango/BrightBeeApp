@@ -15,7 +15,6 @@ export const StudyProvider = ({ children }) => {
   const [subject, setSubject] = useState(null);
   const [username, setUsername] = useState('Fiona');
 
-  // Load from AsyncStorage when app starts
   useEffect(() => {
     const loadData = async () => {
       const storedStudy = await AsyncStorage.getItem('studyData');
