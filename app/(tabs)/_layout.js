@@ -29,6 +29,7 @@ export default function TabLayout() {
       <Tabs.Screen name="week" options={{ href: null }} />
       <Tabs.Screen name="subject" options={{ href: null }} />
       <Tabs.Screen name="month" options={{ href: null }} />
+      <Tabs.Screen name="wallet" options={{ href: null }} />
     </Tabs>
   );
 }
