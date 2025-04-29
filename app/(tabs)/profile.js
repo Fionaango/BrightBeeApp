@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Link } from 'expo-router'; 
 import { StudyContext } from '../StudyContext';
 
 export default function ProfileScreen() {
@@ -49,9 +50,11 @@ export default function ProfileScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Settings</Text>
             <View style={styles.card}>
-              <TouchableOpacity style={styles.menuItem}>
-                <Text style={styles.menuLabel}>Wallet</Text>
-              </TouchableOpacity>
+              <Link href="/wallet" asChild>
+                <TouchableOpacity style={styles.menuItem}>
+                  <Text style={styles.menuLabel}>Wallet</Text>
+                </TouchableOpacity>
+              </Link>
               <TouchableOpacity style={styles.menuItem}>
                 <Text style={styles.menuLabel}>Edit Profile</Text>
               </TouchableOpacity>
