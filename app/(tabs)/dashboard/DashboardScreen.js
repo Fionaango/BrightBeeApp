@@ -6,13 +6,7 @@ export const StudyContext = createContext();
 const defaultData = {
   day: new Array(24).fill(0),
   week: {
-    Monday: 0,
-    Tuesday: 0,
-    Wednesday: 0,
-    Thursday: 0,
-    Friday: 0,
-    Saturday: 0,
-    Sunday: 0,
+    Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0, Sunday: 0,
   },
   month: new Array(30).fill(0),
   year: {
@@ -27,9 +21,13 @@ export const StudyProvider = ({ children }) => {
 
   useEffect(() => {
     const loadData = async () => {
-      const saved = await AsyncStorage.getItem('studyData');
-      if (saved) {
-        setStudyData(JSON.parse(saved));
+      try {
+        const saved = await AsyncStorage.getItem('studyData');
+        if (saved) {
+          setStudyData(JSON.parse(saved));
+        }
+      } catch (error) {
+        console.error('Failed to load study data:', error);
       }
     };
     loadData();
