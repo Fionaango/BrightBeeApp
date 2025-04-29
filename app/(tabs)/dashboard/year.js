@@ -1,31 +1,29 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { StudyContext } from './DashboardScreen';
+import { StudyContext } from '../../StudyContext';
 
 export default function YearScreen() {
   const { studyData } = useContext(StudyContext);
+  const yearData = studyData?.year || {};
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December',
   ];
-  const yearData = studyData?.year || {};
   const max = Math.max(...months.map((m) => yearData[m] || 0), 1);
 
   return (
     <LinearGradient colors={['#FFF1CC', '#FFFFFF']} style={styles.container}>
       <Text style={styles.title}>Year Overview</Text>
-      <ScrollView>
-        {months.map((month) => (
-          <View key={month} style={styles.row}>
-            <Text style={styles.label}>{month.slice(0, 3)}</Text>
-            <View style={styles.bar}>
-              <View style={[styles.fill, { width: `${(yearData[month] || 0) / max * 100}%` }]} />
-            </View>
-            <Text style={styles.value}>{yearData[month] || 0} mins</Text>
+      {months.map((month) => (
+        <View key={month} style={styles.row}>
+          <Text style={styles.label}>{month.slice(0, 3)}</Text>
+          <View style={styles.bar}>
+            <View style={[styles.fill, { width: `${(yearData[month] / max) * 100}%` }]} />
           </View>
-        ))}
-      </ScrollView>
+          <Text style={styles.value}>{yearData[month] || 0} mins</Text>
+        </View>
+      ))}
     </LinearGradient>
   );
 }

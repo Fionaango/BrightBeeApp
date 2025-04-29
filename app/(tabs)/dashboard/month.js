@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { StudyContext } from './DashboardScreen';
+import { StudyContext } from '../../StudyContext';
 
 export default function MonthScreen() {
   const { studyData } = useContext(StudyContext);

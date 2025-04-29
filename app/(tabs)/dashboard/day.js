@@ -1,11 +1,11 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { StudyContext } from './DashboardScreen';
+import { StudyContext } from '../../StudyContext';
 
 export default function DayScreen() {
   const { studyData } = useContext(StudyContext);
-  const todayData = studyData?.day || new Array(24).fill(0);
+  const todayData = studyData.day || new Array(24).fill(0);
   const max = Math.max(...todayData, 1);
 
   return (
